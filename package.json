@@ -1,0 +1,14 @@
+{
+  "name": "solvelens",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "写真から数学・物理の解き方を説明する学習サイト",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
