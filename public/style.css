@@ -1,150 +1,136 @@
-const form = document.querySelector("#solve-form");
-const dropZone = document.querySelector("#drop-zone");
-const input = document.querySelector("#image-input");
-const empty = document.querySelector("#upload-empty");
-const previewWrap = document.querySelector("#preview-wrap");
-const preview = document.querySelector("#preview");
-const removeButton = document.querySelector("#remove-image");
-const submitButton = document.querySelector("#submit-button");
-const errorBox = document.querySelector("#form-error");
-const loading = document.querySelector("#loading");
-const loadingText = document.querySelector("#loading-text");
-const result = document.querySelector("#result");
-let imageData = "";
-
-const loadingMessages = ["条件と求めるものを整理中…", "解き方を組み立てています…", "計算と答えを確認中…"];
-let loadingTimer;
-
-dropZone.addEventListener("click", (event) => {
-  if (event.target.closest("#remove-image")) return;
-  input.click();
-});
-dropZone.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") { event.preventDefault(); input.click(); }
-});
-input.addEventListener("change", () => handleFile(input.files[0]));
-
-for (const eventName of ["dragenter", "dragover"]) {
-  dropZone.addEventListener(eventName, (event) => { event.preventDefault(); dropZone.classList.add("dragging"); });
-}
-for (const eventName of ["dragleave", "drop"]) {
-  dropZone.addEventListener(eventName, (event) => { event.preventDefault(); dropZone.classList.remove("dragging"); });
-}
-dropZone.addEventListener("drop", (event) => handleFile(event.dataTransfer.files[0]));
-removeButton.addEventListener("click", (event) => { event.stopPropagation(); clearImage(); });
-
-async function handleFile(file) {
-  hideError();
-  if (!file) return;
-  if (!(["image/jpeg", "image/png", "image/webp"].includes(file.type))) return showError("JPEG・PNG・WebPの画像を選んでください。");
-  if (file.size > 10 * 1024 * 1024) return showError("画像は10MB以下にしてください。");
-  try {
-    imageData = await resizeImage(file);
-    preview.src = imageData;
-    empty.hidden = true;
-    previewWrap.hidden = false;
-    submitButton.disabled = false;
-  } catch {
-    showError("画像を読み込めませんでした。別の写真を試してください。");
-  }
+:root {
+  color-scheme: dark;
+  --bg: #07111f;
+  --surface: #0c1a2c;
+  --surface-2: #10233a;
+  --line: #203954;
+  --text: #f3f8fc;
+  --muted: #9bb0c4;
+  --cyan: #55e7d2;
+  --cyan-dark: #093d3d;
+  --blue: #65a8ff;
+  --danger: #ff9d9d;
+  --shadow: 0 24px 80px rgba(0, 0, 0, .28);
 }
 
-function resizeImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const image = new Image();
-      image.onerror = reject;
-      image.onload = () => {
-        const max = 1800;
-        const scale = Math.min(1, max / Math.max(image.width, image.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(image.width * scale);
-        canvas.height = Math.round(image.height * scale);
-        const context = canvas.getContext("2d");
-        context.fillStyle = "#ffffff";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", .88));
-      };
-      image.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 72% 8%, rgba(31, 131, 171, .22), transparent 27rem),
+    linear-gradient(rgba(67, 102, 131, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(67, 102, 131, .07) 1px, transparent 1px),
+    var(--bg);
+  background-size: auto, 32px 32px, 32px 32px, auto;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+  line-height: 1.7;
 }
 
-function clearImage() {
-  imageData = "";
-  input.value = "";
-  preview.removeAttribute("src");
-  previewWrap.hidden = true;
-  empty.hidden = false;
-  submitButton.disabled = true;
+button, textarea, input { font: inherit; }
+button { color: inherit; }
+.topbar {
+  height: 68px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-size: 1.05rem; font-weight: 800; letter-spacing: .02em; }
+.brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid rgba(85, 231, 210, .5); border-radius: 11px; color: var(--cyan); background: rgba(85, 231, 210, .08); font-family: Georgia, serif; font-size: 1.25rem; }
+.privacy { color: var(--muted); font-size: .8rem; }
+.privacy span { color: var(--cyan); font-size: .55rem; margin-right: 5px; }
+
+main { width: min(780px, calc(100% - 32px)); margin: 42px auto 80px; }
+.intro { margin-bottom: 34px; }
+.eyebrow { color: var(--cyan) !important; letter-spacing: .19em; font-weight: 800; font-size: .76rem !important; margin: 0 0 10px !important; }
+.intro h1 { margin: 0; font-size: clamp(2.65rem, 8vw, 5.25rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 850; }
+.intro h1 span { color: transparent; -webkit-text-stroke: 1.2px var(--cyan); }
+.intro > p:last-child { max-width: 570px; margin: 20px 0 0; color: var(--muted); font-size: 1rem; }
+
+.workspace, .result { background: linear-gradient(145deg, rgba(15, 35, 58, .97), rgba(9, 24, 41, .97)); border: 1px solid var(--line); border-radius: 22px; padding: 28px; box-shadow: var(--shadow); }
+.field-group { margin-bottom: 22px; }
+.label { display: block; color: #c9d7e4; font-size: .88rem; font-weight: 750; margin-bottom: 9px; }
+.label em { color: var(--muted); font-style: normal; font-weight: 500; font-size: .76rem; margin-left: 6px; }
+.segments { display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; background: #081522; border: 1px solid #172d43; border-radius: 12px; }
+.segments label { cursor: pointer; }
+.segments input { position: absolute; opacity: 0; pointer-events: none; }
+.segments span { min-height: 43px; display: grid; place-items: center; color: var(--muted); border-radius: 9px; font-size: .9rem; font-weight: 700; transition: .2s ease; }
+.segments input:checked + span { background: var(--surface-2); color: var(--cyan); box-shadow: 0 2px 9px rgba(0,0,0,.2); }
+.segments input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.drop-zone { min-height: 282px; border: 1.5px dashed #3c617d; border-radius: 17px; background: rgba(7, 20, 34, .65); display: grid; place-items: center; cursor: pointer; overflow: hidden; transition: border .2s, background .2s, transform .2s; }
+.drop-zone:hover, .drop-zone:focus-visible, .drop-zone.dragging { border-color: var(--cyan); background: rgba(17, 52, 64, .45); outline: none; }
+.drop-zone:active { transform: scale(.995); }
+.upload-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 36px 20px; }
+.camera-icon { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; background: var(--cyan-dark); color: var(--cyan); margin-bottom: 15px; }
+.camera-icon svg { width: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.upload-empty strong { font-size: 1.05rem; }
+.upload-empty > span:not(.camera-icon) { color: var(--muted); font-size: .9rem; }
+.upload-empty small { color: #71879b; font-size: .75rem; margin-top: 13px; }
+.preview-wrap { width: 100%; height: 100%; min-height: 282px; position: relative; }
+.preview-wrap img { width: 100%; height: 100%; min-height: 282px; max-height: 480px; display: block; object-fit: contain; background: #050b12; }
+.remove-image { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(2, 10, 18, .82); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.change-hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 5px 12px; border-radius: 99px; background: rgba(2, 10, 18, .78); color: #cbd9e5; font-size: .75rem; white-space: nowrap; }
+.note-field { display: block; margin-top: 22px; }
+textarea { width: 100%; resize: vertical; min-height: 92px; border: 1px solid #29445e; border-radius: 12px; padding: 13px 15px; background: #081522; color: var(--text); font-size: 1rem; line-height: 1.55; }
+textarea::placeholder { color: #667d91; }
+textarea:focus { outline: 2px solid rgba(85, 231, 210, .55); border-color: var(--cyan); }
+.solve-button { width: 100%; min-height: 56px; margin-top: 20px; border: 0; border-radius: 13px; background: var(--cyan); color: #041817; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 850; cursor: pointer; transition: .2s; }
+.solve-button:not(:disabled):hover { background: #7df0df; transform: translateY(-1px); box-shadow: 0 10px 30px rgba(85,231,210,.18); }
+.solve-button:disabled { opacity: .36; cursor: not-allowed; }
+.arrow { font-size: 1.35rem; }
+.form-error { margin: 13px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(180, 50, 60, .14); border: 1px solid rgba(255, 100, 110, .25); color: var(--danger); font-size: .88rem; }
+
+.loading-card { margin-top: 18px; padding: 22px 25px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); display: flex; align-items: center; gap: 17px; }
+.loading-card[hidden] { display: none; }
+.loading-card strong, .loading-card span { display: block; }
+.loading-card span { color: var(--muted); font-size: .85rem; }
+.loader { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #23435b; border-top-color: var(--cyan); animation: spin .8s linear infinite; flex: 0 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.result { margin-top: 24px; }
+.result-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 22px; }
+.result-subject { margin: 0; color: var(--cyan); font-size: .75rem; font-weight: 800; letter-spacing: .12em; }
+.result h2 { margin: 0; font-size: 2rem; letter-spacing: -.035em; }
+.reset-button { border: 1px solid #365570; border-radius: 10px; padding: 8px 12px; background: transparent; color: #bed0df; cursor: pointer; font-size: .82rem; }
+.problem-card, .answer-card { padding: 18px 20px; border-radius: 14px; margin-bottom: 14px; }
+.problem-card { background: #091725; border: 1px solid #203a50; }
+.answer-card { background: linear-gradient(120deg, rgba(14, 84, 80, .45), rgba(13, 48, 67, .55)); border: 1px solid rgba(85,231,210,.32); }
+.problem-card span, .answer-card span { display: block; color: var(--muted); font-size: .74rem; font-weight: 800; margin-bottom: 5px; }
+.problem-card p, .answer-card p { white-space: pre-wrap; margin: 0; }
+.answer-card p { color: #ddfff8; font-size: 1.13rem; font-weight: 750; }
+.steps-section { padding: 23px 2px; }
+.result h3 { margin: 0 0 15px; font-size: 1rem; }
+.steps-section ol { list-style: none; padding: 0; margin: 0; counter-reset: steps; }
+.steps-section li { position: relative; counter-increment: steps; margin: 0 0 10px; padding: 14px 15px 14px 52px; background: rgba(9,23,37,.7); border: 1px solid #20384e; border-radius: 12px; white-space: pre-wrap; }
+.steps-section li::before { content: counter(steps); position: absolute; left: 14px; top: 13px; width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: #051d1b; background: var(--cyan); font-size: .78rem; font-weight: 850; }
+.lower-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.points-card, .check-card { background: #091725; border: 1px solid #20384e; border-radius: 14px; padding: 18px; }
+.points-card ul { padding-left: 20px; margin: 0; }
+.points-card li::marker { color: var(--cyan); }
+.check-card p { white-space: pre-wrap; margin: 0; color: #d0dce6; }
+.caution { color: #99aebe; font-size: .79rem; margin: 16px 2px 0; }
+footer { max-width: 780px; margin: 0 auto 36px; padding: 0 18px; text-align: center; color: #6f8497; font-size: .75rem; }
+
+@media (max-width: 600px) {
+  .topbar { height: 60px; padding: 0 16px; }
+  .privacy { font-size: .68rem; }
+  main { margin-top: 28px; width: min(100% - 24px, 780px); }
+  .intro { margin-left: 5px; }
+  .intro h1 { font-size: clamp(2.55rem, 14vw, 4rem); }
+  .workspace, .result { border-radius: 18px; padding: 18px; }
+  .drop-zone, .preview-wrap, .preview-wrap img { min-height: 240px; }
+  .segments span { font-size: .82rem; }
+  .result-heading { align-items: start; }
+  .lower-grid { grid-template-columns: 1fr; }
+  .steps-section li { padding-right: 12px; }
 }
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!imageData) return;
-  hideError();
-  result.hidden = true;
-  loading.hidden = false;
-  submitButton.disabled = true;
-  document.querySelector("#button-label").textContent = "解説を作成中…";
-  let messageIndex = 0;
-  loadingText.textContent = loadingMessages[0];
-  loadingTimer = setInterval(() => { messageIndex = (messageIndex + 1) % loadingMessages.length; loadingText.textContent = loadingMessages[messageIndex]; }, 2200);
-
-  try {
-    const response = await fetch("/api/solve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image: imageData,
-        subject: new FormData(form).get("subject"),
-        note: document.querySelector("#note").value.trim()
-      })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "解説を作れませんでした。");
-    renderSolution(data.solution);
-  } catch (error) {
-    showError(error.message || "通信に失敗しました。もう一度試してください。");
-  } finally {
-    clearInterval(loadingTimer);
-    loading.hidden = true;
-    submitButton.disabled = !imageData;
-    document.querySelector("#button-label").textContent = "解説をつくる";
-  }
-});
-
-function renderSolution(solution) {
-  setText("#result-subject", String(solution.subject || "解説").toUpperCase());
-  setText("#problem-text", solution.problem);
-  setText("#answer-text", solution.answer);
-  setText("#check-text", solution.check);
-  setText("#caution-text", solution.caution);
-  fillList("#steps-list", solution.steps);
-  fillList("#points-list", solution.key_points);
-  result.hidden = false;
-  result.scrollIntoView({ behavior: "smooth", block: "start" });
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
-
-function setText(selector, value) { document.querySelector(selector).textContent = value || "—"; }
-function fillList(selector, values) {
-  const list = document.querySelector(selector);
-  list.replaceChildren(...(Array.isArray(values) ? values : []).map((value) => {
-    const item = document.createElement("li");
-    item.textContent = value;
-    return item;
-  }));
-}
-function showError(message) { errorBox.textContent = message; errorBox.hidden = false; }
-function hideError() { errorBox.hidden = true; errorBox.textContent = ""; }
-
-document.querySelector("#reset-button").addEventListener("click", () => {
-  result.hidden = true;
-  clearImage();
-  document.querySelector("#note").value = "";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});

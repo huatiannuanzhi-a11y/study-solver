@@ -1,9 +1,92 @@
-∑ SolveLens ● 画像は保存しません
-PHOTO → UNDERSTAND
-その問題、 「わかる」まで。
-数学・物理の問題を撮るだけ。答えだけでなく、式を立てる理由から丁寧に解説します。
-科目
-自動判定 数学 物理
-問題の写真を選ぶ タップして撮影・選択 JPEG・PNG・WebP / 10MBまで
-補足・特に知りたいこと 任意 解説をつくる →
-AIの解説は誤る場合があります。提出前に教科書や先生の説明でも確認してください。
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="問題の写真から、数学・物理の答えと考え方を丁寧に解説します。">
+  <title>SolveLens｜数学・物理を写真で解説</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="SolveLens ホーム">
+      <span class="brand-mark" aria-hidden="true">∑</span>
+      <span>SolveLens</span>
+    </a>
+    <span class="privacy"><span aria-hidden="true">●</span> 画像は保存しません</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">PHOTO → UNDERSTAND</p>
+      <h1 id="page-title">その問題、<br><span>「わかる」まで。</span></h1>
+      <p>数学・物理の問題を撮るだけ。答えだけでなく、式を立てる理由から丁寧に解説します。</p>
+    </section>
+
+    <section class="workspace" aria-label="問題を送信">
+      <form id="solve-form">
+        <div class="field-group subject-group">
+          <span class="label">科目</span>
+          <div class="segments" role="radiogroup" aria-label="科目を選択">
+            <label><input type="radio" name="subject" value="auto" checked><span>自動判定</span></label>
+            <label><input type="radio" name="subject" value="math"><span>数学</span></label>
+            <label><input type="radio" name="subject" value="physics"><span>物理</span></label>
+          </div>
+        </div>
+
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="問題の写真を選ぶ">
+          <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
+          <div id="upload-empty" class="upload-empty">
+            <span class="camera-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14.5 5 13 3h-2L9.5 5H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4.5Z"/><circle cx="12" cy="12.5" r="4"/></svg>
+            </span>
+            <strong>問題の写真を選ぶ</strong>
+            <span>タップして撮影・選択</span>
+            <small>JPEG・PNG・WebP / 10MBまで</small>
+          </div>
+          <div id="preview-wrap" class="preview-wrap" hidden>
+            <img id="preview" alt="選択した問題のプレビュー">
+            <button id="remove-image" class="remove-image" type="button" aria-label="画像を削除">×</button>
+            <span class="change-hint">タップして画像を変更</span>
+          </div>
+        </div>
+
+        <label class="note-field">
+          <span class="label">補足・特に知りたいこと <em>任意</em></span>
+          <textarea id="note" maxlength="500" rows="3" placeholder="例：問2だけ解説してほしい／途中式を詳しく知りたい"></textarea>
+        </label>
+
+        <button id="submit-button" class="solve-button" type="submit" disabled>
+          <span id="button-label">解説をつくる</span>
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="loading" class="loading-card" aria-live="polite" hidden>
+      <div class="loader" aria-hidden="true"></div>
+      <div><strong>問題を読み取っています</strong><span id="loading-text">条件と求めるものを整理中…</span></div>
+    </section>
+
+    <section id="result" class="result" aria-labelledby="result-title" hidden>
+      <div class="result-heading">
+        <div><p id="result-subject" class="result-subject"></p><h2 id="result-title">解説</h2></div>
+        <button id="reset-button" class="reset-button" type="button">別の問題を解く</button>
+      </div>
+      <div class="problem-card"><span>読み取った問題</span><p id="problem-text"></p></div>
+      <div class="answer-card"><span>答え</span><p id="answer-text"></p></div>
+      <div class="steps-section"><h3>考え方と途中式</h3><ol id="steps-list"></ol></div>
+      <div class="lower-grid">
+        <div class="points-card"><h3>押さえるポイント</h3><ul id="points-list"></ul></div>
+        <div class="check-card"><h3>検算・確認</h3><p id="check-text"></p></div>
+      </div>
+      <p id="caution-text" class="caution"></p>
+    </section>
+  </main>
+
+  <footer>AIの解説は誤る場合があります。提出前に教科書や先生の説明でも確認してください。</footer>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
